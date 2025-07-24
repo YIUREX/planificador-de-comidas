@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Planificador de comidas</title>
   <style>
     :root {
@@ -16,6 +16,8 @@
       margin: 0;
       padding: 0;
       background: #f4f4f4;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     header {
@@ -36,6 +38,7 @@
       padding: 0.2em 0.5em;
       border-radius: 4px;
       display: inline-block;
+      user-select: text;
     }
 
     .controls {
@@ -208,38 +211,128 @@
       background-color: #a71d2a;
     }
 
-    .modal {
+    .modal-overlay {
       position: fixed;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.4);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      z-index: 300;
     }
 
     .modal-content {
       background: white;
-      padding: 1em;
-      border-radius: 8px;
+      padding: 1.5em 1.8em;
+      border-radius: 10px;
       width: 90%;
       max-width: 400px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      font-family: sans-serif;
+      text-align: left;
+      max-height: 80vh;
+      overflow-y: auto;
     }
 
-    .resumen {
-      margin: 2em auto;
-      max-width: 600px;
-      background: white;
-      padding: 1em;
+    .modal-content h2 {
+      margin-top: 0;
+      font-size: 1.4em;
+      margin-bottom: 0.7em;
+      color: #333;
+    }
+
+    .modal-content label {
+      display: block;
+      margin: 0.5em 0 0.3em 0;
+      font-weight: 600;
+    }
+
+    .modal-content input[type="text"] {
+      width: 100%;
+      padding: 0.5em;
+      font-size: 1em;
+      border-radius: 5px;
       border: 1px solid #ccc;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
     }
 
-    ul { padding-left: 1.2em; }
+    .ingredientes-list {
+      margin-top: 0.5em;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 0.3em;
+      background: #fafafa;
+    }
 
-    /* Mensaje discreto para copia */
+    .ingrediente-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.3em;
+    }
+
+    .ingrediente-item input {
+      flex: 1;
+      padding: 0.3em 0.5em;
+      font-size: 0.95em;
+      border-radius: 3px;
+      border: 1px solid #bbb;
+    }
+
+    .ingrediente-item button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 0 8px;
+      margin-left: 6px;
+      cursor: pointer;
+      border-radius: 3px;
+      font-weight: bold;
+      font-size: 1em;
+      line-height: 1;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    .ingrediente-item button:hover {
+      background-color: #a71d2a;
+    }
+
+    .add-ingrediente-btn {
+      margin-top: 0.5em;
+      background-color: #007bff;
+      color: white;
+      border-radius: 4px;
+      border: none;
+      padding: 0.4em 0.9em;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    .add-ingrediente-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .modal-content .buttons {
+      margin-top: 1.2em;
+      text-align: right;
+    }
+
+    .modal-content button.cancel {
+      background: #ccc;
+      color: #333;
+    }
+
+    .modal-content button.save {
+      background: #007bff;
+      color: white;
+    }
+
+    .modal-content button.save:hover {
+      background: #0056b3;
+    }
+
     #mensajeCopiado {
       position: fixed;
       bottom: 80px;
@@ -253,11 +346,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
-      z-index: 210;
-    }
-
-    input[type="text"], input[type="color"], select {
-      font-family: sans-serif;
+      z-index: 310;
     }
 
     @media screen and (max-width: 600px) {
@@ -337,11 +426,36 @@
 
   <div id="mensajeCopiado">Comida copiada ✔️</div>
 
+  <!-- Modal personalizado para editar comida -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <h2 id="modalTitle">Editar comida</h2>
+      <label for="inputNombre">Nombre del plato:</label>
+      <input type="text" id="inputNombre" placeholder="Escribe el nombre del plato" />
+
+      <label>Ingredientes:</label>
+      <div class="ingredientes-list" id="ingredientesList">
+        <!-- ingredientes aquí -->
+      </div>
+      <button class="add-ingrediente-btn" onclick="agregarIngrediente()">+ Añadir ingrediente</button>
+
+      <div class="buttons">
+        <button class="cancel" onclick="cerrarModal()">Cancelar</button>
+        <button class="save" onclick="guardarComida()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const franjas = ["desayuno", "comida", "cena"];
     const dias = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
     let semanaActual = getStartOfWeek(new Date());
     let mensajeTimeout = null;
+    let modalDia = null;
+    let modalFranja = null;
+
+    // LocalStorage keys prefix
+    const STORAGE_PREFIX = "planificadorComidas_";
 
     function getStartOfWeek(date) {
       const d = new Date(date);
@@ -357,11 +471,11 @@
     }
 
     function getDataSemana() {
-      return JSON.parse(localStorage.getItem(formatoFecha(semanaActual))) || {};
+      return JSON.parse(localStorage.getItem(STORAGE_PREFIX + formatoFecha(semanaActual))) || {};
     }
 
     function guardarDataSemana(data) {
-      localStorage.setItem(formatoFecha(semanaActual), JSON.stringify(data));
+      localStorage.setItem(STORAGE_PREFIX + formatoFecha(semanaActual), JSON.stringify(data));
     }
 
     function renderTabla() {
@@ -372,22 +486,50 @@
       franjas.forEach(franja => {
         const tr = document.createElement("tr");
         const th = document.createElement("th");
-        th.textContent = franja.toUpperCase();
+        th.textContent = franja;
         tr.appendChild(th);
 
         dias.forEach(dia => {
           const td = document.createElement("td");
           const comida = (data[dia] && data[dia][franja]) || {};
           const nombre = comida.nombre || "Sin definir";
+
+          // Usamos un id único para evitar problemas con eventos en botones
+          const copiaBtnId = `copiar_${dia}_${franja}`;
+          const borrarBtnId = `borrar_${dia}_${franja}`;
+          const titleId = `title_${dia}_${franja}`;
+
           td.innerHTML = `
-            <div class="title" onclick="abrirModal('${dia}', '${franja}')">${nombre}</div>
+            <div id="${titleId}" class="title" tabindex="0" role="button" aria-pressed="false" aria-label="Editar comida de ${franja} del ${dia}">${nombre}</div>
             <div class="actions">
-              <button onclick="copiarComida('${dia}','${franja}')">Copiar</button>
-              <button onclick="borrarComida('${dia}','${franja}')">Borrar</button>
+              <button id="${copiaBtnId}" aria-label="Copiar comida de ${franja} del ${dia}">Copiar</button>
+              <button id="${borrarBtnId}" aria-label="Borrar comida de ${franja} del ${dia}">Borrar</button>
             </div>
           `;
           if (nombre !== "Sin definir") td.classList.add("filled");
           tr.appendChild(td);
+
+          // Eventos
+          // Editar al hacer click en el título
+          td.querySelector(`#${titleId}`).addEventListener("click", () => abrirModal(dia, franja));
+          td.querySelector(`#title_${dia}_${franja}`).addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              abrirModal(dia, franja);
+            }
+          });
+
+          // Copiar comida
+          td.querySelector(`#${copiaBtnId}`).addEventListener("click", e => {
+            e.stopPropagation();
+            copiarComida(dia, franja);
+          });
+
+          // Borrar comida
+          td.querySelector(`#${borrarBtnId}`).addEventListener("click", e => {
+            e.stopPropagation();
+            borrarComida(dia, franja);
+          });
         });
 
         tbody.appendChild(tr);
@@ -403,11 +545,11 @@
       renderTabla();
     }
 
+    // Mostrar lista de la compra única
+    let resumenAbierto = false;
     function mostrarResumen() {
-      // Evitar múltiples bloques resumen
-      if(document.querySelector('.resumen')){
-        document.querySelector('.resumen').remove();
-      }
+      if (resumenAbierto) return; // No abrir más de una lista
+      resumenAbierto = true;
 
       const data = getDataSemana();
       const ingredientesSet = new Set();
@@ -416,7 +558,9 @@
         franjas.forEach(franja => {
           const comida = data[dia]?.[franja];
           if (comida && Array.isArray(comida.ingredientes)) {
-            comida.ingredientes.forEach(ing => ingredientesSet.add(ing.trim()));
+            comida.ingredientes.forEach(ing => {
+              if(ing.trim()) ingredientesSet.add(ing.trim());
+            });
           }
         });
       });
@@ -424,6 +568,14 @@
       const lista = document.createElement("ul");
       const contenedor = document.createElement("div");
       contenedor.className = "resumen";
+      contenedor.style.maxWidth = "600px";
+      contenedor.style.margin = "1.5em auto";
+      contenedor.style.background = "white";
+      contenedor.style.padding = "1em";
+      contenedor.style.border = "1px solid #ccc";
+      contenedor.style.borderRadius = "6px";
+      contenedor.style.position = "relative";
+      contenedor.style.boxShadow = "0 3px 10px rgba(0,0,0,0.1)";
       contenedor.innerHTML = `<h3>Lista de la compra</h3>`;
 
       const ingredientes = Array.from(ingredientesSet).sort();
@@ -438,25 +590,133 @@
       }
 
       contenedor.appendChild(lista);
+
       const cerrar = document.createElement("button");
       cerrar.textContent = "Cerrar";
-      cerrar.onclick = () => contenedor.remove();
+      cerrar.style.position = "absolute";
+      cerrar.style.top = "8px";
+      cerrar.style.right = "8px";
+      cerrar.style.backgroundColor = "#dc3545";
+      cerrar.style.color = "white";
+      cerrar.style.border = "none";
+      cerrar.style.padding = "0.3em 0.6em";
+      cerrar.style.borderRadius = "4px";
+      cerrar.style.cursor = "pointer";
+      cerrar.style.userSelect = "none";
+      cerrar.addEventListener("click", () => {
+        contenedor.remove();
+        resumenAbierto = false;
+      });
+
       contenedor.appendChild(cerrar);
 
       document.body.appendChild(contenedor);
     }
 
+    // Modal edición comida
+    const modalOverlay = document.getElementById("modalOverlay");
+    const inputNombre = document.getElementById("inputNombre");
+    const ingredientesList = document.getElementById("ingredientesList");
+
     function abrirModal(dia, franja) {
-      const nombre = prompt("Nombre del plato:");
-      if (!nombre) return;
+      modalDia = dia;
+      modalFranja = franja;
+
       const data = getDataSemana();
-      if (!data[dia]) data[dia] = {};
-      if (!data[dia][franja]) data[dia][franja] = {};
-      data[dia][franja].nombre = nombre;
+      const comida = (data[dia] && data[dia][franja]) || {};
+      inputNombre.value = comida.nombre || "";
+      renderIngredientes(comida.ingredientes || []);
+
+      modalOverlay.style.display = "flex";
+
+      // Enfocar input nombre al abrir
+      setTimeout(() => inputNombre.focus(), 150);
+    }
+
+    function cerrarModal() {
+      modalOverlay.style.display = "none";
+      modalDia = null;
+      modalFranja = null;
+      limpiarIngredientes();
+    }
+
+    function renderIngredientes(ingredientes) {
+      ingredientesList.innerHTML = "";
+      ingredientes.forEach((ing, i) => {
+        const div = document.createElement("div");
+        div.className = "ingrediente-item";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = ing;
+        input.placeholder = "Ingrediente";
+        input.setAttribute("aria-label", `Ingrediente ${i+1}`);
+
+        const btnBorrar = document.createElement("button");
+        btnBorrar.textContent = "×";
+        btnBorrar.setAttribute("aria-label", `Borrar ingrediente ${i+1}`);
+        btnBorrar.onclick = () => {
+          ingredientesList.removeChild(div);
+        };
+
+        div.appendChild(input);
+        div.appendChild(btnBorrar);
+        ingredientesList.appendChild(div);
+      });
+    }
+
+    function limpiarIngredientes() {
+      ingredientesList.innerHTML = "";
+    }
+
+    function agregarIngrediente() {
+      const div = document.createElement("div");
+      div.className = "ingrediente-item";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Ingrediente";
+      input.setAttribute("aria-label", `Ingrediente nuevo`);
+
+      const btnBorrar = document.createElement("button");
+      btnBorrar.textContent = "×";
+      btnBorrar.setAttribute("aria-label", `Borrar ingrediente`);
+      btnBorrar.onclick = () => {
+        ingredientesList.removeChild(div);
+      };
+
+      div.appendChild(input);
+      div.appendChild(btnBorrar);
+      ingredientesList.appendChild(div);
+
+      input.focus();
+    }
+
+    function guardarComida() {
+      const nombre = inputNombre.value.trim();
+      if (nombre === "") {
+        alert("Por favor, escribe un nombre para el plato.");
+        inputNombre.focus();
+        return;
+      }
+
+      const ingredientesInputs = ingredientesList.querySelectorAll("input");
+      const ingredientes = [];
+      ingredientesInputs.forEach(input => {
+        const val = input.value.trim();
+        if (val) ingredientes.push(val);
+      });
+
+      const data = getDataSemana();
+      if (!data[modalDia]) data[modalDia] = {};
+      data[modalDia][modalFranja] = { nombre, ingredientes };
       guardarDataSemana(data);
+
+      cerrarModal();
       renderTabla();
     }
 
+    // Copiar comida a "portapapeles" en localStorage (sin alertas emergentes)
     function copiarComida(dia, franja) {
       const data = getDataSemana();
       const comida = data[dia]?.[franja];
@@ -466,19 +726,25 @@
       }
     }
 
-    function mostrarMensajeCopiado(){
-      const mensaje = document.getElementById("mensajeCopiado");
-      clearTimeout(mensajeTimeout);
-      mensaje.style.opacity = "1";
+    // Mostrar mensaje de comida copiada y ocultarlo tras 2 segundos
+    function mostrarMensajeCopiado() {
+      const msg = document.getElementById("mensajeCopiado");
+      if(mensajeTimeout) clearTimeout(mensajeTimeout);
+      msg.style.opacity = 1;
+      msg.style.pointerEvents = "auto";
+
       mensajeTimeout = setTimeout(() => {
-        mensaje.style.opacity = "0";
+        msg.style.opacity = 0;
+        msg.style.pointerEvents = "none";
       }, 2000);
     }
 
+    // Borrar comida
     function borrarComida(dia, franja) {
       const data = getDataSemana();
       if (data[dia]) {
         delete data[dia][franja];
+        if(Object.keys(data[dia]).length === 0) delete data[dia];
         guardarDataSemana(data);
         renderTabla();
       }
@@ -491,35 +757,10 @@
 
     function cambiarColorCabecera(color) {
       document.documentElement.style.setProperty("--header-bg", color);
-      document.documentElement.style.setProperty("--header-bg-dark", shadeColor(color, -25));
       localStorage.setItem("colorCabecera", color);
-      // Cambiar fondo y color texto header y controles
-      document.querySelector("header").style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue("--header-bg-dark").trim();
-      document.querySelector("header h1").style.backgroundColor = color;
-      document.querySelector("header h1").style.color = "#f0f0f0";
+      // Cambiar también fondo cabecera y controles para más coherencia
+      document.querySelector("header").style.backgroundColor = color;
       document.querySelector(".controls").style.backgroundColor = color;
-      document.querySelector(".controls").style.color = "#f0f0f0";
-    }
-
-    // Función para oscurecer o aclarar color HEX
-    function shadeColor(color, percent) {
-      let R = parseInt(color.substring(1,3),16);
-      let G = parseInt(color.substring(3,5),16);
-      let B = parseInt(color.substring(5,7),16);
-
-      R = parseInt(R * (100 + percent) / 100);
-      G = parseInt(G * (100 + percent) / 100);
-      B = parseInt(B * (100 + percent) / 100);
-
-      R = (R<255)?R:255;  
-      G = (G<255)?G:255;  
-      B = (B<255)?B:255;  
-
-      const RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-      const GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-      const BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-
-      return "#"+RR+GG+BB;
     }
 
     function guardarTitulo() {
@@ -535,11 +776,14 @@
     function cargarColorCabecera() {
       const color = localStorage.getItem("colorCabecera");
       if (color) {
-        cambiarColorCabecera(color);
+        document.documentElement.style.setProperty("--header-bg", color);
+        document.querySelector("header").style.backgroundColor = color;
+        document.querySelector(".controls").style.backgroundColor = color;
         document.getElementById("colorCabecera").value = color;
       }
     }
 
+    // Inicialización
     cargarTitulo();
     cargarColorCabecera();
     renderTabla();
