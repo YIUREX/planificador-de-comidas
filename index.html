@@ -25,6 +25,11 @@
       padding: 0 1em;
     }
 
+    .ver-resumen {
+      text-align: center;
+      margin-top: 1em;
+    }
+
     button {
       margin: 0.3em;
       padding: 0.5em 1em;
@@ -52,15 +57,20 @@
       vertical-align: top;
     }
 
+    thead th, tbody th {
+      background: #333;
+      color: #fff;
+    }
+
     td .title {
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.95em;
+      font-size: 1.1em;
     }
 
     td .actions {
       margin-top: 0.4em;
-      font-size: 0.8em;
+      font-size: 0.9em;
     }
 
     .modal {
@@ -98,13 +108,14 @@
     }
 
     @media screen and (max-width: 600px) {
-      th, td {
-        font-size: 0.85em;
-        padding: 0.6em;
+      td .title {
+        font-size: 1.2em;
       }
+
       td .actions button {
-        font-size: 0.9em;
+        font-size: 1em;
       }
+
       .controls {
         font-size: 0.9em;
       }
@@ -117,10 +128,9 @@
   </header>
 
   <div class="controls">
-    <button onclick="cambiarSemana(-1)">← Semana anterior</button>
+    <button onclick="cambiarSemana(-1)">←</button>
     <strong id="rangoSemana"></strong>
-    <button onclick="cambiarSemana(1)">Semana siguiente →</button>
-    <button onclick="mostrarResumen()">Ver resumen</button>
+    <button onclick="cambiarSemana(1)">→</button>
   </div>
 
   <div class="table-wrapper">
@@ -139,6 +149,10 @@
       </thead>
       <tbody id="tbody"></tbody>
     </table>
+  </div>
+
+  <div class="ver-resumen">
+    <button onclick="mostrarResumen()">Ver resumen</button>
   </div>
 
   <div class="modal" id="modal">
@@ -206,7 +220,7 @@
           td.innerHTML = `
             <div class="title" onclick="abrirModal('${dia}', '${franja}')">${nombre}</div>
             <div class="actions">
-              <button onclick="copiarComida('${dia}','${franja}')">📋</button>
+              <button onclick="copiarComida('${dia}','${franja}')">Copiar</button>
               <button onclick="borrarComida('${dia}','${franja}')">❌</button>
             </div>
           `;
