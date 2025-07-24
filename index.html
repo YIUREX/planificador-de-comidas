@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planificador de comidas</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    header {
+      background: #333;
+      color: white;
+      padding: 1em;
+      text-align: center;
+    }
+    .controls {
+      text-align: center;
+      margin: 1em 0;
+    }
+    button {
+      margin: 0 0.5em;
+      padding: 0.5em 1em;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: auto;
+      max-width: 1000px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      text-align: center;
+      padding: 1em;
+      vertical-align: top;
+      position: relative;
+    }
+    td .title {
+      font-weight: bold;
+      cursor: pointer;
+    }
+    td .actions {
+      margin-top: 0.5em;
+      font-size: 0.8em;
+    }
+    td .actions button {
+      margin: 0 0.2em;
+      padding: 0.2em 0.4em;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 1em;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+    }
+    .resumen {
+      margin: 2em auto;
+      max-width: 600px;
+      background: white;
+      padding: 1em;
+      border: 1px solid #ccc;
+    }
+    ul { padding-left: 1.2em; }
+    input[type="text"] { width: 100%; margin-bottom: 0.5em; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Planificador de comidas</h1>
+  </header>
+
+  <div class="controls">
+    <button onclick="cambiarSemana(-1)">← Semana anterior</button>
+    <strong id="rangoSemana"></strong>
+    <button onclick="cambiarSemana(1)">Semana siguiente →</button>
+    <button onclick="mostrarResumen()">Ver resumen</button>
+  </div>
+
+  <table id="tablaComidas">
+    <thead>
+      <tr>
+        <th>Franja/Día</th>
+        <th>Lunes</th>
+        <th>Martes</th>
+        <th>Miércoles</th>
+        <th>Jueves</th>
+        <th>Viernes</th>
+        <th>Sábado</th>
+        <th>Domingo</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Editar comida</h3>
+      <input type="text" id="nombreComida" placeholder="Nombre de la comida"/>
+      <ul id="listaIngredientes"></ul>
+      <input type="text" id="nuevoIngrediente" placeholder="Nuevo ingrediente"/>
+      <button onclick="agregarIngrediente()">Añadir ingrediente</button>
+      <br/><br/>
+      <button onclick="guardarModal()">Guardar</button>
+      <button onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="resumen" id="resumen" style="display:none;">
+    <h3>Resumen semanal</h3>
+    <ul id="listaResumen"></ul>
+    <button onclick="cerrarResumen()">Cerrar</button>
+  </div>
+
+  <script>
+    const franjas = ["desayuno", "comida", "cena"];
+    const dias = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+    let semanaActual = getStartOfWeek(new Date());
+    let comidaEnEdicion = {};
+
+    function getStartOfWeek(date) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      d.setDate(diff);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function formatoFecha(date) {
+      return date.toISOString().split('T')[0];
+    }
+
+    function getDataSemana() {
+      const key = formatoFecha(semanaActual);
+      return JSON.parse(localStorage.getItem(key)) || {};
+    }
+
+    function guardarDataSemana(data) {
+      const key = formatoFecha(semanaActual);
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function renderTabla() {
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = "";
+      const data = getDataSemana();
+      franjas.forEach(franja => {
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+        th.textContent = franja.charAt(0).toUpperCase() + franja.slice(1);
+        tr.appendChild(th);
+
+        dias.forEach(dia => {
+          const td = document.createElement("td");
+          const comida = (data[dia] && data[dia][franja]) || {};
+          const nombre = comida.nombre || "Sin definir";
+          td.innerHTML = `
+            <div class="title" onclick="abrirModal('${dia}', '${franja}')">${nombre}</div>
+            <div class="actions">
+              <button onclick="copiarComida('${dia}','${franja}')">📋</button>
+              <button onclick="borrarComida('${dia}','${franja}')">❌</button>
+            </div>
+          `;
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("rangoSemana").textContent =
+        formatoFecha(semanaActual) + " → " +
+        formatoFecha(new Date(semanaActual.getTime() + 6 * 86400000));
+    }
+
+    function abrirModal(dia, franja) {
+      const data = getDataSemana();
+      const comida = data[dia]?.[franja] || { nombre: "", ingredientes: [] };
+      comidaEnEdicion = { dia, franja };
+
+      document.getElementById("nombreComida").value = comida.nombre || "";
+      document.getElementById("listaIngredientes").innerHTML = "";
+
+      (comida.ingredientes || []).forEach((ing, i) => {
+        const li = document.createElement("li");
+        li.textContent = ing;
+        li.onclick = () => li.remove();
+        document.getElementById("listaIngredientes").appendChild(li);
+      });
+
+      document.getElementById("modal").style.display = "flex";
+    }
+
+    function cerrarModal() {
+      document.getElementById("modal").style.display = "none";
+    }
+
+    function agregarIngrediente() {
+      const input = document.getElementById("nuevoIngrediente");
+      if (input.value.trim()) {
+        const li = document.createElement("li");
+        li.textContent = input.value.trim();
+        li.onclick = () => li.remove();
+        document.getElementById("listaIngredientes").appendChild(li);
+        input.value = "";
+      }
+    }
+
+    function guardarModal() {
+      const data = getDataSemana();
+      const { dia, franja } = comidaEnEdicion;
+      if (!data[dia]) data[dia] = {};
+      const nombre = document.getElementById("nombreComida").value;
+      const ingredientes = Array.from(document.querySelectorAll("#listaIngredientes li")).map(li => li.textContent);
+      data[dia][franja] = { nombre, ingredientes };
+      guardarDataSemana(data);
+      cerrarModal();
+      renderTabla();
+    }
+
+    function borrarComida(dia, franja) {
+      const data = getDataSemana();
+      if (data[dia]) {
+        delete data[dia][franja];
+        guardarDataSemana(data);
+        renderTabla();
+      }
+    }
+
+    function copiarComida(dia, franja) {
+      const data = getDataSemana();
+      const comida = data[dia]?.[franja];
+      if (comida) {
+        localStorage.setItem("comidaCopiada", JSON.stringify(comida));
+        alert("Comida copiada. Haz clic en otra celda para pegar.");
+      }
+      document.querySelectorAll(".title").forEach(el => {
+        el.onclick = () => {
+          const destino = el.closest("td");
+          const col = destino.cellIndex - 1;
+          const row = destino.parentNode.rowIndex - 1;
+          const nuevaComida = JSON.parse(localStorage.getItem("comidaCopiada"));
+          if (!nuevaComida) return;
+          const diaDestino = dias[col];
+          const franjaDestino = franjas[row];
+          const data = getDataSemana();
+          if (!data[diaDestino]) data[diaDestino] = {};
+          data[diaDestino][franjaDestino] = nuevaComida;
+          guardarDataSemana(data);
+          renderTabla();
+        }
+      });
+    }
+
+    function cambiarSemana(delta) {
+      semanaActual.setDate(semanaActual.getDate() + delta * 7);
+      renderTabla();
+    }
+
+    function mostrarResumen() {
+      const data = getDataSemana();
+      const lista = document.getElementById("listaResumen");
+      const ingredientesSet = new Set();
+
+      dias.forEach(dia => {
+        franjas.forEach(franja => {
+          const comida = data[dia]?.[franja];
+          if (comida?.ingredientes) {
+            comida.ingredientes.forEach(ing => ingredientesSet.add(ing));
+          }
+        });
+      });
+
+      lista.innerHTML = "";
+      Array.from(ingredientesSet).sort().forEach(ing => {
+        const li = document.createElement("li");
+        li.textContent = ing;
+        lista.appendChild(li);
+      });
+
+      document.getElementById("resumen").style.display = "block";
+    }
+
+    function cerrarResumen() {
+      document.getElementById("resumen").style.display = "none";
+    }
+
+    renderTabla();
+  </script>
+</body>
+</html>
