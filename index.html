@@ -19,6 +19,12 @@
       text-align: center;
     }
 
+    header h1 {
+      margin: 0;
+      font-size: 1.8em;
+      cursor: text;
+    }
+
     .controls {
       text-align: center;
       margin: 1em 0;
@@ -60,6 +66,7 @@
     thead th, tbody th {
       background: #333;
       color: #fff;
+      text-transform: uppercase;
     }
 
     td .title {
@@ -119,12 +126,16 @@
       .controls {
         font-size: 0.9em;
       }
+
+      header h1 {
+        font-size: 1.5em;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Planificador de comidas</h1>
+    <h1 id="tituloEditable" contenteditable="true" onblur="guardarTitulo()">Planificador de comidas</h1>
   </header>
 
   <div class="controls">
@@ -210,7 +221,7 @@
       franjas.forEach(franja => {
         const tr = document.createElement("tr");
         const th = document.createElement("th");
-        th.textContent = franja.charAt(0).toUpperCase() + franja.slice(1);
+        th.textContent = franja;
         tr.appendChild(th);
 
         dias.forEach(dia => {
@@ -358,7 +369,20 @@
       document.getElementById("resumen").style.display = "none";
     }
 
+    function guardarTitulo() {
+      const titulo = document.getElementById("tituloEditable").textContent;
+      localStorage.setItem("tituloApp", titulo);
+    }
+
+    function cargarTitulo() {
+      const titulo = localStorage.getItem("tituloApp");
+      if (titulo) {
+        document.getElementById("tituloEditable").textContent = titulo;
+      }
+    }
+
     renderTabla();
+    cargarTitulo();
   </script>
 </body>
 </html>
