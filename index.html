@@ -36,6 +36,31 @@
       margin-top: 1em;
     }
 
+    .settings-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #333;
+      color: white;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+      cursor: pointer;
+      border: none;
+    }
+
+    .settings-panel {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 1em;
+      display: none;
+      z-index: 200;
+    }
+
     button {
       margin: 0.3em;
       padding: 0.5em 1em;
@@ -64,7 +89,7 @@
     }
 
     thead th, tbody th {
-      background: #333;
+      background: var(--header-bg, #333);
       color: #fff;
       text-transform: uppercase;
     }
@@ -78,6 +103,16 @@
     td .actions {
       margin-top: 0.4em;
       font-size: 0.9em;
+    }
+
+    .actions button:first-child {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .actions button:last-child {
+      background-color: #dc3545;
+      color: white;
     }
 
     .modal {
@@ -108,7 +143,7 @@
     }
 
     ul { padding-left: 1.2em; }
-    input[type="text"] {
+    input[type="text"], input[type="color"] {
       width: 100%;
       margin-bottom: 0.5em;
       padding: 0.4em;
@@ -118,15 +153,12 @@
       td .title {
         font-size: 1.2em;
       }
-
       td .actions button {
         font-size: 1em;
       }
-
       .controls {
         font-size: 0.9em;
       }
-
       header h1 {
         font-size: 1.5em;
       }
@@ -163,17 +195,22 @@
   </div>
 
   <div class="ver-resumen">
-    <button onclick="mostrarResumen()">Ver resumen</button>
+    <button onclick="mostrarResumen()">Lista de la compra</button>
+  </div>
+
+  <button class="settings-button" onclick="toggleSettings()">⚙</button>
+  <div class="settings-panel" id="settingsPanel">
+    <label>Color de cabecera:</label>
+    <input type="color" id="colorCabecera" onchange="cambiarColorCabecera(this.value)"/>
   </div>
 
   <div class="modal" id="modal">
     <div class="modal-content">
-      <h3 id="modalTitle">Editar comida</h3>
+      <h3>Editar comida</h3>
       <input type="text" id="nombreComida" placeholder="Nombre de la comida"/>
       <ul id="listaIngredientes"></ul>
       <input type="text" id="nuevoIngrediente" placeholder="Nuevo ingrediente"/>
-      <button onclick="agregarIngrediente()">Añadir ingrediente</button>
-      <br/><br/>
+      <button onclick="agregarIngrediente()">Añadir ingrediente</button><br/><br/>
       <button onclick="guardarModal()">Guardar</button>
       <button onclick="cerrarModal()">Cancelar</button>
     </div>
@@ -205,19 +242,18 @@
     }
 
     function getDataSemana() {
-      const key = formatoFecha(semanaActual);
-      return JSON.parse(localStorage.getItem(key)) || {};
+      return JSON.parse(localStorage.getItem(formatoFecha(semanaActual))) || {};
     }
 
     function guardarDataSemana(data) {
-      const key = formatoFecha(semanaActual);
-      localStorage.setItem(key, JSON.stringify(data));
+      localStorage.setItem(formatoFecha(semanaActual), JSON.stringify(data));
     }
 
     function renderTabla() {
       const tbody = document.getElementById("tbody");
       tbody.innerHTML = "";
       const data = getDataSemana();
+
       franjas.forEach(franja => {
         const tr = document.createElement("tr");
         const th = document.createElement("th");
@@ -232,7 +268,7 @@
             <div class="title" onclick="abrirModal('${dia}', '${franja}')">${nombre}</div>
             <div class="actions">
               <button onclick="copiarComida('${dia}','${franja}')">Copiar</button>
-              <button onclick="borrarComida('${dia}','${franja}')">❌</button>
+              <button onclick="borrarComida('${dia}','${franja}')">Borrar</button>
             </div>
           `;
           tr.appendChild(td);
@@ -254,7 +290,7 @@
       document.getElementById("nombreComida").value = comida.nombre || "";
       document.getElementById("listaIngredientes").innerHTML = "";
 
-      (comida.ingredientes || []).forEach((ing, i) => {
+      (comida.ingredientes || []).forEach(ing => {
         const li = document.createElement("li");
         li.textContent = ing;
         li.onclick = () => li.remove();
@@ -339,11 +375,7 @@
         franjas.forEach(franja => {
           const comida = data[dia]?.[franja];
           if (comida && Array.isArray(comida.ingredientes)) {
-            comida.ingredientes.forEach(ing => {
-              if (typeof ing === "string" && ing.trim() !== "") {
-                ingredientesSet.add(ing.trim());
-              }
-            });
+            comida.ingredientes.forEach(ing => ingredientesSet.add(ing.trim()));
           }
         });
       });
@@ -351,9 +383,7 @@
       lista.innerHTML = "";
       const ingredientes = Array.from(ingredientesSet).sort();
       if (ingredientes.length === 0) {
-        const li = document.createElement("li");
-        li.textContent = "No hay ingredientes registrados esta semana.";
-        lista.appendChild(li);
+        lista.innerHTML = "<li>No hay ingredientes registrados esta semana.</li>";
       } else {
         ingredientes.forEach(ing => {
           const li = document.createElement("li");
@@ -376,13 +406,30 @@
 
     function cargarTitulo() {
       const titulo = localStorage.getItem("tituloApp");
-      if (titulo) {
-        document.getElementById("tituloEditable").textContent = titulo;
+      if (titulo) document.getElementById("tituloEditable").textContent = titulo;
+    }
+
+    function toggleSettings() {
+      const panel = document.getElementById("settingsPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    function cambiarColorCabecera(color) {
+      document.documentElement.style.setProperty("--header-bg", color);
+      localStorage.setItem("colorCabecera", color);
+    }
+
+    function cargarColorCabecera() {
+      const color = localStorage.getItem("colorCabecera");
+      if (color) {
+        document.documentElement.style.setProperty("--header-bg", color);
+        document.getElementById("colorCabecera").value = color;
       }
     }
 
     renderTabla();
     cargarTitulo();
+    cargarColorCabecera();
   </script>
 </body>
 </html>
