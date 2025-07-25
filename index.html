@@ -88,6 +88,7 @@
       user-select: none;
       color: var(--header-bg-dark);
       transition: color 0.3s ease;
+      z-index: 400;
     }
     .settings-button:hover {
       color: #555;
@@ -101,7 +102,7 @@
       border: 1px solid #ccc;
       padding: 1em;
       display: none;
-      z-index: 200;
+      z-index: 400;
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
       border-radius: 8px;
       font-family: sans-serif;
@@ -143,6 +144,7 @@
       box-shadow: 0 0 6px rgba(0,0,0,0.05);
       background: white;
       padding: 0.3em;
+      z-index: 1;
     }
 
     table {
@@ -160,6 +162,8 @@
       padding: 0.8em;
       vertical-align: top;
       font-weight: normal;
+      cursor: default;
+      user-select: none;
     }
 
     thead th, tbody th {
@@ -170,24 +174,27 @@
       font-size: 0.95em;
       user-select: none;
       transition: background-color 0.3s ease, color 0.3s ease;
+      cursor: default;
     }
 
     td.filled {
       background-color: #fff8cc;
       transition: background-color 0.3s ease;
+      cursor: pointer;
     }
 
     td .title {
       font-weight: bold;
-      cursor: pointer;
       font-size: 1.2em;
       user-select: none;
       color: #222;
+      cursor: pointer;
     }
 
     td .actions {
       margin-top: 0.4em;
       font-size: 0.9em;
+      user-select: none;
     }
 
     .actions button:first-child {
@@ -195,6 +202,8 @@
       color: white;
       margin-right: 0.3em;
       transition: background-color 0.3s ease;
+      user-select: none;
+      cursor: pointer;
     }
 
     .actions button:first-child:hover {
@@ -205,12 +214,15 @@
       background-color: #dc3545;
       color: white;
       transition: background-color 0.3s ease;
+      user-select: none;
+      cursor: pointer;
     }
 
     .actions button:last-child:hover {
       background-color: #a71d2a;
     }
 
+    /* Modal común para editar comida */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -219,6 +231,7 @@
       align-items: center;
       justify-content: center;
       z-index: 300;
+      user-select: none;
     }
 
     .modal-content {
@@ -232,6 +245,7 @@
       text-align: left;
       max-height: 80vh;
       overflow-y: auto;
+      user-select: text;
     }
 
     .modal-content h2 {
@@ -239,12 +253,14 @@
       font-size: 1.4em;
       margin-bottom: 0.7em;
       color: #333;
+      user-select: text;
     }
 
     .modal-content label {
       display: block;
       margin: 0.5em 0 0.3em 0;
       font-weight: 600;
+      user-select: text;
     }
 
     .modal-content input[type="text"] {
@@ -254,6 +270,7 @@
       border-radius: 5px;
       border: 1px solid #ccc;
       box-sizing: border-box;
+      user-select: text;
     }
 
     .ingredientes-list {
@@ -264,6 +281,7 @@
       border-radius: 4px;
       padding: 0.3em;
       background: #fafafa;
+      user-select: text;
     }
 
     .ingrediente-item {
@@ -278,6 +296,7 @@
       font-size: 0.95em;
       border-radius: 3px;
       border: 1px solid #bbb;
+      user-select: text;
     }
 
     .ingrediente-item button {
@@ -317,6 +336,7 @@
     .modal-content .buttons {
       margin-top: 1.2em;
       text-align: right;
+      user-select: none;
     }
 
     .modal-content button.cancel {
@@ -333,6 +353,7 @@
       background: #0056b3;
     }
 
+    /* Mensaje de comida copiada */
     #mensajeCopiado {
       position: fixed;
       bottom: 80px;
@@ -347,6 +368,7 @@
       pointer-events: none;
       transition: opacity 0.3s ease;
       z-index: 310;
+      user-select: none;
     }
 
     /* Ocultar franjas por clase */
@@ -391,17 +413,17 @@
   </div>
 
   <div class="table-wrapper">
-    <table id="tablaComidas">
+    <table id="tablaComidas" role="grid" aria-readonly="true">
       <thead>
         <tr>
-          <th>Franja/Día</th>
-          <th>Lunes</th>
-          <th>Martes</th>
-          <th>Miércoles</th>
-          <th>Jueves</th>
-          <th>Viernes</th>
-          <th>Sábado</th>
-          <th>Domingo</th>
+          <th scope="col">Franja/Día</th>
+          <th scope="col">Lunes</th>
+          <th scope="col">Martes</th>
+          <th scope="col">Miércoles</th>
+          <th scope="col">Jueves</th>
+          <th scope="col">Viernes</th>
+          <th scope="col">Sábado</th>
+          <th scope="col">Domingo</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -409,10 +431,10 @@
   </div>
 
   <div class="ver-resumen">
-    <button id="btnListaCompra">Lista de la compra ↓</button>
+    <button id="btnListaCompra" aria-haspopup="dialog" aria-controls="modalCompraOverlay">Lista de la compra ↓</button>
   </div>
 
-  <button class="settings-button" onclick="toggleSettings()">⚙️</button>
+  <button class="settings-button" aria-label="Abrir ajustes" onclick="toggleSettings()">⚙️</button>
   <div class="settings-panel" id="settingsPanel" aria-label="Panel de ajustes" role="region">
     <label for="colorCabecera">Color de cabecera:</label>
     <input type="color" id="colorCabecera" onchange="cambiarColorCabecera(this.value)" list="paletaColores" />
@@ -443,7 +465,7 @@
     </div>
   </div>
 
-  <div id="mensajeCopiado">Comida copiada ✔️</div>
+  <div id="mensajeCopiado" role="alert" aria-live="assertive">Comida copiada ✔️</div>
 
   <!-- Modal personalizado para editar comida -->
   <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -465,13 +487,40 @@
     </div>
   </div>
 
+  <!-- Modal de lista de la compra -->
+  <div class="modal-overlay" id="modalCompraOverlay" role="dialog" aria-modal="true" aria-labelledby="modalCompraTitle">
+    <div class="modal-content">
+      <h2 id="modalCompraTitle">Lista de la compra</h2>
+      <div id="listaCompraContenido" style="margin-top: 1em; line-height: 1.6;"></div>
+      <div class="buttons" style="margin-top: 1.5em; text-align: right;">
+        <button class="cancel" onclick="cerrarModalCompra()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación de borrado -->
+<div class="modal-overlay" id="modalConfirmacion">
+  <div class="modal-content">
+    <h2>¿Eliminar comida?</h2>
+    <p>¿Estás seguro de que quieres eliminar esta comida?</p>
+    <div class="buttons">
+      <button class="cancel" onclick="cerrarModalConfirmacion()">Cancelar</button>
+      <button class="save" onclick="confirmarBorrado()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
   <script>
+    // --- VARIABLES GLOBALES ---
     const franjas = ["desayuno", "comida", "cena"];
     const dias = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
     let semanaActual = getStartOfWeek(new Date());
     let mensajeTimeout = null;
     let modalDia = null;
     let modalFranja = null;
+
+    // Comida copiada para pegar (almacenamiento temporal)
+    let comidaCopiada = null;
 
     // Franjas visibles (por defecto todas)
     let franjasVisibles = {
@@ -483,6 +532,7 @@
     // LocalStorage keys prefix
     const STORAGE_PREFIX = "planificadorComidas_";
 
+    // --- FUNCIONES UTILITARIAS ---
     function getStartOfWeek(date) {
       const d = new Date(date);
       const day = d.getDay();
@@ -510,57 +560,75 @@
     }
 
     function formatoFechaSemanaKey() {
-      // Para que la clave sea siempre la misma pero en formato dd-mm-yyyy
       return formatoFecha(semanaActual);
     }
 
-    function renderTabla() {
+    // --- CARGA Y MUESTREO DE TABLA ---
+    function cargarTabla() {
       const tbody = document.getElementById("tbody");
       tbody.innerHTML = "";
+
       const data = getDataSemana();
 
       franjas.forEach(franja => {
-        // Ocultar franjas si está en false
-        if (!franjasVisibles[franja]) return;
-
+        if (!franjasVisibles[franja]) return; // ocultar franja si no visible
         const tr = document.createElement("tr");
-        tr.dataset.franja = franja;
         const th = document.createElement("th");
-        th.textContent = franja;
+        th.textContent = franja.charAt(0).toUpperCase() + franja.slice(1);
         tr.appendChild(th);
 
         dias.forEach(dia => {
           const td = document.createElement("td");
-          const comida = (data[dia] && data[dia][franja]) || {};
-          const nombre = comida.nombre || "Sin definir";
+          td.setAttribute("data-dia", dia);
+          td.setAttribute("data-franja", franja);
+          td.setAttribute("tabindex", 0);
+          td.setAttribute("role", "gridcell");
+          td.classList.add("td-comida");
 
-          // Ids únicos para eventos
-          const copiaBtnId = `copiar_${dia}_${franja}`;
-          const borrarBtnId = `borrar_${dia}_${franja}`;
-          const titleId = `title_${dia}_${franja}`;
+          const comida = data[dia] && data[dia][franja];
+          if (comida && comida.nombre) {
+            td.classList.add("filled");
+            td.innerHTML = `
+              <div class="title" title="${comida.nombre}">${comida.nombre}</div>
+              <div class="actions">
+                <button onclick="copiarComida(event, '${dia}', '${franja}')" aria-label="Copiar comida de ${franja} de ${dia}">Copiar</button>
+                <button aria-label="Borrar comida de ${franja} de ${dia}" class="btn-borrar">Borrar</button>
 
-          td.innerHTML = `
-            <div id="${titleId}" class="title" tabindex="0" role="button" aria-pressed="false" aria-label="Editar comida de ${franja} del ${dia}">${nombre}</div>
-            <div class="actions">
-              <button id="${copiaBtnId}" aria-label="Copiar comida de ${franja} del ${dia}">Copiar</button>
-              <button id="${borrarBtnId}" aria-label="Borrar comida de ${franja} del ${dia}">Borrar</button>
-            </div>
-          `;
-          if (nombre !== "Sin definir") td.classList.add("filled");
-          tr.appendChild(td);
+              </div>
+            `;
+            const btnBorrar = td.querySelector('.btn-borrar');
+btnBorrar.addEventListener('click', (e) => {
+  e.stopPropagation();
+  borrarComida(dia, franja);
+});
 
-          // Eventos
-          // Editar al hacer click en el título
-          td.querySelector(`#${titleId}`).addEventListener("click", () => abrirModal(dia, franja));
-          td.querySelector(`#title_${dia}_${franja}`).addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
+          } else {
+            td.innerHTML = "&nbsp;";
+          }
+
+          // click para abrir modal editar comida o pegar comida
+          td.addEventListener("click", (e) => {
+            // si hay comida copiada, pegar
+            if (comidaCopiada) {
+              pegarComida(dia, franja);
+            } else {
               abrirModal(dia, franja);
             }
           });
 
-          td.querySelector(`#${copiaBtnId}`).addEventListener("click", () => copiarComida(dia, franja));
-          td.querySelector(`#${borrarBtnId}`).addEventListener("click", () => borrarComida(dia, franja));
+          // Tecla enter para accesibilidad
+          td.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              if (comidaCopiada) {
+                pegarComida(dia, franja);
+              } else {
+                abrirModal(dia, franja);
+              }
+            }
+          });
+
+          tr.appendChild(td);
         });
 
         tbody.appendChild(tr);
@@ -569,183 +637,192 @@
       actualizarRangoSemana();
     }
 
-    function actualizarRangoSemana() {
-      const rango = document.getElementById("rangoSemana");
-      const fechaInicio = formatoFecha(semanaActual);
-      const fechaFin = formatoFecha(new Date(semanaActual.getTime() + 6 * 24 * 60 * 60 * 1000));
-      rango.textContent = `${fechaInicio} — ${fechaFin}`;
+    // --- FUNCIONES DE NAVEGACION DE SEMANA ---
+    function cambiarSemana(cantidad) {
+      semanaActual.setDate(semanaActual.getDate() + cantidad * 7);
+      cargarTabla();
     }
 
-    function cambiarSemana(delta) {
-      semanaActual.setDate(semanaActual.getDate() + delta * 7);
-      renderTabla();
+    function actualizarRangoSemana() {
+      const rango = document.getElementById("rangoSemana");
+      const finSemana = new Date(semanaActual);
+      finSemana.setDate(finSemana.getDate() + 6);
+      rango.textContent = `${formatoFecha(semanaActual)} - ${formatoFecha(finSemana)}`;
     }
+
+    // --- FUNCIONES DEL MODAL DE EDICION ---
 
     function abrirModal(dia, franja) {
       modalDia = dia;
       modalFranja = franja;
-      const modalOverlay = document.getElementById("modalOverlay");
-      modalOverlay.style.display = "flex";
-
       const data = getDataSemana();
-      const comida = (data[dia] && data[dia][franja]) || { nombre: "", ingredientes: [] };
+
+      const comida = data[dia] && data[dia][franja] ? data[dia][franja] : { nombre: "", ingredientes: [] };
+
       document.getElementById("inputNombre").value = comida.nombre || "";
+      cargarIngredientesModal(comida.ingredientes || []);
 
-      // Limpiar lista de ingredientes
-      const lista = document.getElementById("ingredientesList");
-      lista.innerHTML = "";
+      document.getElementById("modalOverlay").style.display = "flex";
 
-      if (comida.ingredientes && comida.ingredientes.length) {
-        comida.ingredientes.forEach((ingrediente, idx) => {
-          agregarIngrediente(ingrediente);
-        });
-      } else {
-        agregarIngrediente();
-      }
+      // Para accesibilidad: focus primer input
+      setTimeout(() => {
+        document.getElementById("inputNombre").focus();
+      }, 100);
     }
 
     function cerrarModal() {
-      const modalOverlay = document.getElementById("modalOverlay");
-      modalOverlay.style.display = "none";
+      document.getElementById("modalOverlay").style.display = "none";
+      // Limpiar datos modal para evitar errores
       modalDia = null;
       modalFranja = null;
     }
 
-    function agregarIngrediente(valor = "") {
+    
+    
+    let comidaPendienteBorrar = null;
+
+function abrirModalConfirmacion(dia, franja) {
+  comidaPendienteBorrar = { dia, franja };
+  document.getElementById("modalConfirmacion").style.display = "flex";
+}
+
+function cerrarModalConfirmacion() {
+  comidaPendienteBorrar = null;
+  document.getElementById("modalConfirmacion").style.display = "none";
+}
+
+function confirmarBorrado() {
+  if (!comidaPendienteBorrar) return;
+
+  const { dia, franja } = comidaPendienteBorrar;
+  const data = getDataSemana();
+
+  if (data[dia]) {
+    if (data[dia][franja]) {
+      delete data[dia][franja];
+      if (Object.keys(data[dia]).length === 0) {
+        delete data[dia];
+      }
+      guardarDataSemana(data);
+      cargarTabla();
+    }
+  }
+
+  cerrarModalConfirmacion();
+}
+
+    function cargarIngredientesModal(ingredientes) {
+      const lista = document.getElementById("ingredientesList");
+      lista.innerHTML = "";
+      ingredientes.forEach((ing, i) => {
+        const div = document.createElement("div");
+        div.className = "ingrediente-item";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = ing;
+        input.setAttribute("aria-label", `Ingrediente ${i + 1}`);
+
+        const btnEliminar = document.createElement("button");
+        btnEliminar.textContent = "×";
+        btnEliminar.setAttribute("aria-label", `Eliminar ingrediente ${i + 1}`);
+        btnEliminar.onclick = () => {
+          div.remove();
+        };
+
+        div.appendChild(input);
+        div.appendChild(btnEliminar);
+        lista.appendChild(div);
+      });
+    }
+
+    function agregarIngrediente() {
       const lista = document.getElementById("ingredientesList");
       const div = document.createElement("div");
       div.className = "ingrediente-item";
-      div.innerHTML = `
-        <input type="text" value="${valor}" placeholder="Ingrediente..." />
-        <button type="button" aria-label="Eliminar ingrediente">×</button>
-      `;
-      const btnEliminar = div.querySelector("button");
-      btnEliminar.addEventListener("click", () => {
-        lista.removeChild(div);
-      });
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Nuevo ingrediente";
+      input.setAttribute("aria-label", "Nuevo ingrediente");
+
+      const btnEliminar = document.createElement("button");
+      btnEliminar.textContent = "×";
+      btnEliminar.setAttribute("aria-label", "Eliminar ingrediente");
+      btnEliminar.onclick = () => {
+        div.remove();
+      };
+
+      div.appendChild(input);
+      div.appendChild(btnEliminar);
       lista.appendChild(div);
+
+      input.focus();
     }
 
     function guardarComida() {
       if (!modalDia || !modalFranja) return;
 
       const nombre = document.getElementById("inputNombre").value.trim();
-      const lista = document.getElementById("ingredientesList");
-      const ingredientes = [];
-      lista.querySelectorAll("input[type=text]").forEach(input => {
+      if (!nombre) {
+        alert("El nombre del plato no puede estar vacío.");
+        return;
+      }
+
+      const ingredientesList = document.getElementById("ingredientesList");
+      const inputs = ingredientesList.querySelectorAll("input");
+      let ingredientes = [];
+      inputs.forEach(input => {
         const val = input.value.trim();
         if (val) ingredientes.push(val);
       });
 
-      const data = getDataSemana();
+      let data = getDataSemana();
       if (!data[modalDia]) data[modalDia] = {};
-      if (nombre === "" && ingredientes.length === 0) {
-        if (data[modalDia][modalFranja]) delete data[modalDia][modalFranja];
-      } else {
-        data[modalDia][modalFranja] = { nombre, ingredientes };
-      }
+      data[modalDia][modalFranja] = { nombre, ingredientes };
+
       guardarDataSemana(data);
       cerrarModal();
-      renderTabla();
+      cargarTabla();
     }
 
-    function copiarComida(dia, franja) {
+    // --- FUNCIONES DE COPIAR/PEGAR COMIDA ---
+    function copiarComida(e, dia, franja) {
+      e.stopPropagation();
       const data = getDataSemana();
-      const comida = (data[dia] && data[dia][franja]) || null;
-      if (!comida || !comida.nombre) return;
-
-      const texto = comida.nombre;
-      navigator.clipboard.writeText(texto).then(() => {
-        mostrarMensaje("Comida copiada ✔️");
-      }).catch(() => {
-        alert("Error al copiar.");
-      });
+      const comida = data[dia] && data[dia][franja];
+      if (!comida) return;
+      comidaCopiada = JSON.parse(JSON.stringify(comida));
+      mostrarMensajeCopiado();
     }
 
-    function borrarComida(dia, franja) {
-      const data = getDataSemana();
-      if (data[dia]) {
-        if (data[dia][franja]) {
-          delete data[dia][franja];
-          if (Object.keys(data[dia]).length === 0) {
-            delete data[dia];
-          }
-          guardarDataSemana(data);
-          renderTabla();
-        }
-      }
-    }
-
-    function mostrarMensaje(texto) {
+    function mostrarMensajeCopiado() {
       const mensaje = document.getElementById("mensajeCopiado");
-      mensaje.textContent = texto;
-      mensaje.style.opacity = "1";
-      clearTimeout(mensajeTimeout);
+      if (mensajeTimeout) clearTimeout(mensajeTimeout);
+      mensaje.style.opacity = 1;
       mensajeTimeout = setTimeout(() => {
-        mensaje.style.opacity = "0";
-      }, 1500);
+        mensaje.style.opacity = 0;
+      }, 2000);
     }
 
-    function toggleSettings() {
-      const panel = document.getElementById("settingsPanel");
-      panel.style.display = panel.style.display === "block" ? "none" : "block";
+    function pegarComida(dia, franja) {
+      if (!comidaCopiada) return;
+
+      let data = getDataSemana();
+      if (!data[dia]) data[dia] = {};
+      data[dia][franja] = JSON.parse(JSON.stringify(comidaCopiada));
+      guardarDataSemana(data);
+      comidaCopiada = null;
+      cargarTabla();
     }
 
-    function cambiarColorCabecera(color) {
-      document.documentElement.style.setProperty("--header-bg", color);
-      document.documentElement.style.setProperty("--header-bg-dark", darkenColor(color, 0.2));
-      // Guardar en localStorage
-      localStorage.setItem(STORAGE_PREFIX + "colorCabecera", color);
-    }
+    // --- FUNCIONES DE BORRAR COMIDA ---
+    function borrarComida(dia, franja) {
+  abrirModalConfirmacion(dia, franja);
+}
 
-    function cargarColorCabecera() {
-      const color = localStorage.getItem(STORAGE_PREFIX + "colorCabecera");
-      if (color) {
-        cambiarColorCabecera(color);
-        document.getElementById("colorCabecera").value = color;
-      }
-    }
 
-    function darkenColor(color, factor) {
-      // color formato #rrggbb
-      const r = Math.round(parseInt(color.substr(1,2),16) * (1 - factor));
-      const g = Math.round(parseInt(color.substr(3,2),16) * (1 - factor));
-      const b = Math.round(parseInt(color.substr(5,2),16) * (1 - factor));
-      return `rgb(${r},${g},${b})`;
-    }
-
-    function toggleFranja(franja) {
-      franjasVisibles[franja] = !franjasVisibles[franja];
-      // Guardar estado
-      localStorage.setItem(STORAGE_PREFIX + "franjasVisibles", JSON.stringify(franjasVisibles));
-      renderTabla();
-    }
-
-    function cargarFranjasVisibles() {
-      const stored = localStorage.getItem(STORAGE_PREFIX + "franjasVisibles");
-      if (stored) {
-        franjasVisibles = JSON.parse(stored);
-        document.getElementById("chkDesayuno").checked = !!franjasVisibles.desayuno;
-        document.getElementById("chkComida").checked = !!franjasVisibles.comida;
-        document.getElementById("chkCena").checked = !!franjasVisibles.cena;
-      }
-    }
-
-    function guardarTitulo() {
-      const titulo = document.getElementById("tituloEditable").textContent.trim();
-      if (titulo.length > 0) {
-        localStorage.setItem(STORAGE_PREFIX + "titulo", titulo);
-      }
-    }
-
-    function cargarTitulo() {
-      const titulo = localStorage.getItem(STORAGE_PREFIX + "titulo");
-      if (titulo) {
-        document.getElementById("tituloEditable").textContent = titulo;
-      }
-    }
-
-    // Mostrar resumen en alert (lista de ingredientes combinada)
+    // --- FUNCIONES PARA MODAL LISTA DE LA COMPRA ---
     function mostrarResumen() {
       const data = getDataSemana();
       let ingredientesTotales = {};
@@ -759,30 +836,119 @@
           }
         }
       }
+
+      const contenedor = document.getElementById("listaCompraContenido");
+      contenedor.innerHTML = "";
+
       if (Object.keys(ingredientesTotales).length === 0) {
-        alert("No hay ingredientes añadidos esta semana.");
-        return;
+        contenedor.innerHTML = "<em>No hay ingredientes añadidos esta semana.</em>";
+      } else {
+        const ul = document.createElement("ul");
+        for (const ingr in ingredientesTotales) {
+          const li = document.createElement("li");
+          li.textContent = `${ingr} x${ingredientesTotales[ingr]}`;
+          ul.appendChild(li);
+        }
+        contenedor.appendChild(ul);
       }
-      let listaTexto = "Lista de la compra:\n\n";
-      for (const ingr in ingredientesTotales) {
-        listaTexto += `- ${ingr} x${ingredientesTotales[ingr]}\n`;
-      }
-      alert(listaTexto);
+
+      document.getElementById("modalCompraOverlay").style.display = "flex";
     }
 
-    function init() {
+    function cerrarModalCompra() {
+      document.getElementById("modalCompraOverlay").style.display = "none";
+    }
+
+    // --- FUNCIONES PARA AJUSTES ---
+    function toggleSettings() {
+      const panel = document.getElementById("settingsPanel");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
+    }
+
+    function cambiarColorCabecera(color) {
+      document.documentElement.style.setProperty("--header-bg", color);
+      // Oscurecer un poco para header bg dark
+      function oscurecer(hexColor, factor = 0.8) {
+        const r = Math.floor(parseInt(hexColor.slice(1, 3), 16) * factor);
+        const g = Math.floor(parseInt(hexColor.slice(3, 5), 16) * factor);
+        const b = Math.floor(parseInt(hexColor.slice(5, 7), 16) * factor);
+        return `rgb(${r},${g},${b})`;
+      }
+      const colorOscuro = oscurecer(color, 0.7);
+      document.documentElement.style.setProperty("--header-bg-dark", colorOscuro);
+    }
+
+    function toggleFranja(franja) {
+      franjasVisibles[franja] = !franjasVisibles[franja];
+      cargarTabla();
+    }
+
+    // --- GUARDAR TÍTULO CABECERA ---
+    function guardarTitulo() {
+      const titulo = document.getElementById("tituloEditable").textContent.trim();
+      if (titulo) {
+        localStorage.setItem(STORAGE_PREFIX + "titulo", titulo);
+      }
+    }
+
+    function cargarTitulo() {
+      const titulo = localStorage.getItem(STORAGE_PREFIX + "titulo");
+      if (titulo) {
+        document.getElementById("tituloEditable").textContent = titulo;
+      }
+    }
+
+    // --- INICIALIZACIÓN ---
+    document.addEventListener("DOMContentLoaded", () => {
       cargarTitulo();
-      cargarColorCabecera();
-      cargarFranjasVisibles();
-      renderTabla();
-    }
 
-    // Cambiar la inicialización para añadir listener a botón Lista de compra
-    window.onload = () => {
-      init();
+      // Cargar franjas visibles por defecto
+      if (localStorage.getItem(STORAGE_PREFIX + "franjasVisibles")) {
+        try {
+          franjasVisibles = JSON.parse(localStorage.getItem(STORAGE_PREFIX + "franjasVisibles"));
+          for (const f in franjasVisibles) {
+            const chk = document.getElementById("chk" + f.charAt(0).toUpperCase() + f.slice(1));
+            if (chk) chk.checked = franjasVisibles[f];
+          }
+        } catch (e) {
+          // Error leyendo franjas, dejar por defecto
+        }
+      }
+
+      cargarTabla();
+
+      // Evento para botón lista compra
       document.getElementById("btnListaCompra").addEventListener("click", mostrarResumen);
-    };
+
+      // Guardar franjasVisibles cuando cambien
+      ["chkDesayuno", "chkComida", "chkCena"].forEach(id => {
+        const chk = document.getElementById(id);
+        chk.addEventListener("change", () => {
+          franjasVisibles = {
+            desayuno: document.getElementById("chkDesayuno").checked,
+            comida: document.getElementById("chkComida").checked,
+            cena: document.getElementById("chkCena").checked,
+          };
+          localStorage.setItem(STORAGE_PREFIX + "franjasVisibles", JSON.stringify(franjasVisibles));
+          cargarTabla();
+        });
+      });
+
+      // Inicial color cabecera
+      const colorInput = document.getElementById("colorCabecera");
+      const colorGuardado = localStorage.getItem(STORAGE_PREFIX + "colorCabecera");
+      if (colorGuardado) {
+        colorInput.value = colorGuardado;
+        cambiarColorCabecera(colorGuardado);
+      } else {
+        colorInput.value = getComputedStyle(document.documentElement).getPropertyValue("--header-bg").trim() || "#4a4a4a";
+      }
+      colorInput.addEventListener("change", () => {
+        const c = colorInput.value;
+        localStorage.setItem(STORAGE_PREFIX + "colorCabecera", c);
+        cambiarColorCabecera(c);
+      });
+    });
   </script>
 </body>
 </html>
-
